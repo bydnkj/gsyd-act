@@ -1,0 +1,292 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>合约续约活动</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 100%;
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", Helvetica, "Microsoft YaHei", sans-serif;
+    background: linear-gradient(180deg, #eaf3ff 0%, #f5f8fd 40%, #f5f8fd 100%);
+    color: #333;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page {
+    max-width: 540px;
+    margin: 0 auto;
+    padding: 16px 14px 30px;
+  }
+  .page-title {
+    text-align: center;
+    font-size: 18px;
+    font-weight: 700;
+    color: #1a5fcc;
+    margin-bottom: 14px;
+    letter-spacing: 1px;
+  }
+  .switch-btn {
+    position: absolute;
+    top: 12px;
+    right: 14px;
+    height: 30px;
+    padding: 0 14px;
+    font-size: 13px;
+    color: #2b6cdf;
+    background: #fff;
+    border: 1px solid #c5d8f5;
+    border-radius: 15px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    box-shadow: 0 2px 6px rgba(26, 95, 204, 0.08);
+    transition: all .2s;
+  }
+  .switch-btn:active {
+    transform: scale(0.96);
+    background: #eef4ff;
+  }
+  .switch-btn svg { width: 14px; height: 14px; fill: #2b6cdf; }
+  .page { position: relative; }
+  .card {
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 4px 16px rgba(26, 95, 204, 0.10);
+    padding: 16px 16px 18px;
+    margin-bottom: 14px;
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0;
+    width: 4px; height: 100%;
+    background: linear-gradient(180deg, #4a90ff, #1a5fcc);
+  }
+  .card-header {
+    display: flex;
+    align-items: center;
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+    border-bottom: 1px dashed #e3ecf7;
+  }
+  .card-icon {
+    width: 26px; height: 26px;
+    border-radius: 7px;
+    background: linear-gradient(135deg, #5aa0ff, #2b6cdf);
+    display: flex; align-items: center; justify-content: center;
+    margin-right: 8px;
+    flex-shrink: 0;
+  }
+  .card-icon svg { width: 15px; height: 15px; fill: #fff; }
+  .card-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #1a5fcc;
+  }
+  .card-title .num { color: #2b6cdf; margin-right: 2px; }
+  .field {
+    display: flex;
+    font-size: 13.5px;
+    line-height: 1.65;
+    margin-bottom: 6px;
+  }
+  .field:last-child { margin-bottom: 0; }
+  .field-label {
+    flex-shrink: 0;
+    width: 72px;
+    color: #888;
+    font-weight: 500;
+  }
+  .field-value {
+    flex: 1;
+    color: #333;
+    word-break: break-all;
+  }
+  .field-value.name {
+    color: #1a5fcc;
+    font-weight: 600;
+  }
+  .field-value.desc {
+    color: #555;
+    text-align: justify;
+  }
+  .state {
+    text-align: center;
+    color: #999;
+    font-size: 14px;
+    padding: 50px 20px;
+  }
+  .spinner {
+    width: 28px; height: 28px;
+    border: 3px solid #d6e4f7;
+    border-top-color: #2b6cdf;
+    border-radius: 50%;
+    animation: spin .8s linear infinite;
+    margin: 0 auto 12px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .toast {
+    position: fixed;
+    top: 40%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.78);
+    color: #fff;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 14px;
+    z-index: 999;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .25s;
+  }
+  .toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+<div class="page">
+  <button class="switch-btn" id="switchBtn">
+    <svg viewBox="0 0 1024 1024"><path d="M771.2 361.6c-14.4-59.2-46.4-112-92.8-152-50.4-44.8-116.8-68.8-188.8-68.8-65.6 0-128 22.4-179.2 62.4-52.8 41.6-88 99.2-100.8 164.8-1.6 8-11.2 12.8-19.2 11.2l-54.4-11.2c-8-1.6-12.8-11.2-9.6-19.2 1.6-6.4 3.2-12.8 4.8-19.2 17.6-88 67.2-163.2 140.8-216 70.4-51.2 153.6-78.4 241.6-78.4 89.6 0 176 32 244.8 91.2 70.4 60.8 116.8 145.6 131.2 241.6 1.6 8-3.2 16-11.2 17.6l-54.4 11.2c-8 1.6-16-3.2-17.6-11.2zM849.6 595.2c1.6 6.4 3.2 12.8 4.8 19.2 1.6 8-3.2 16-11.2 17.6l-54.4 11.2c-8 1.6-16-3.2-17.6-11.2-14.4-59.2-46.4-112-92.8-152-50.4-44.8-116.8-68.8-188.8-68.8-65.6 0-128 22.4-179.2 62.4-52.8 41.6-88 99.2-100.8 164.8-1.6 8-11.2 12.8-19.2 11.2L144 624c-8-1.6-12.8-11.2-9.6-19.2 16-88 65.6-163.2 139.2-216 70.4-51.2 153.6-78.4 241.6-78.4 89.6 0 176 32 244.8 91.2 70.4 60.8 116.8 145.6 131.2 241.6zM640 832c-35.2 35.2-83.2 54.4-134.4 54.4s-99.2-19.2-134.4-54.4c-36.8-36.8-56-86.4-54.4-139.2 1.6-46.4 20.8-89.6 54.4-123.2 33.6-33.6 76.8-52.8 123.2-54.4 52.8-1.6 102.4 17.6 139.2 54.4 36.8 36.8 56 86.4 54.4 139.2-1.6 46.4-20.8 89.6-54.4 123.2z"/></svg>
+    切换账号
+  </button>
+  <div class="page-title">合约续约活动</div>
+  <div id="list"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const API_URL = "https://www.aifer666.cn/gsyd-act/reNewAct/renewAct";
+  const listEl = document.getElementById("list");
+
+  // 从 localStorage 读取登录态（actId / phone）
+  function getAuth() {
+    try {
+      const raw = localStorage.getItem("gsyd_auth");
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) { return null; }
+  }
+  // 从 URL 参数读取
+  function getQuery(name) {
+    const m = new RegExp("[?&]" + name + "=([^&]*)").exec(location.search);
+    return m ? decodeURIComponent(m[1]) : "";
+  }
+  // 带超时的请求，避免接口无响应时一直加载
+  function fetchWithTimeout(url, options, timeout) {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(new Error("请求超时，请稍后重试")), timeout || 15000);
+    return fetch(url, Object.assign({}, options, { signal: ctrl.signal }))
+      .finally(() => clearTimeout(timer));
+  }
+
+  // 兼容服务端 GBK 编码：按响应头声明的 charset 解码后再解析 JSON
+  //（fetch 的 resp.json() 固定按 UTF-8 解码，服务端返回 GBK 时会乱码）
+  async function parseJsonResponse(resp) {
+    const ct = resp.headers.get("content-type") || "";
+    const m = /charset=([^;]+)/i.exec(ct);
+    let charset = m ? m[1].trim().toLowerCase() : "utf-8";
+    if (charset === "gb2312" || charset === "gbk" || charset === "gb18030") charset = "gbk";
+    const buf = await resp.arrayBuffer();
+    let text;
+    try {
+      text = new TextDecoder(charset).decode(buf);
+    } catch (e) {
+      text = new TextDecoder("utf-8").decode(buf);
+    }
+    return JSON.parse(text);
+  }
+
+  function showLoading() {
+    listEl.innerHTML = '<div class="state"><div class="spinner"></div>数据加载中...</div>';
+  }
+  function showEmpty(msg) {
+    listEl.innerHTML = '<div class="state">' + (msg || "暂无活动数据") + '</div>';
+  }
+  function showToast(msg) {
+    const t = document.getElementById("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    clearTimeout(t._timer);
+    t._timer = setTimeout(() => t.classList.remove("show"), 1800);
+  }
+  // 阿拉伯数字转中文数字（支持 1-99）
+  function toChineseNum(n) {
+    const digits = ["零","一","二","三","四","五","六","七","八","九"];
+    if (n < 10) return digits[n];
+    if (n === 10) return "十";
+    if (n < 20) return "十" + digits[n % 10];
+    const tens = Math.floor(n / 10);
+    const ones = n % 10;
+    return digits[tens] + "十" + (ones ? digits[ones] : "");
+  }
+
+  function cardIconSVG() {
+    return '<svg viewBox="0 0 1024 1024"><path d="M832 128H192a64 64 0 0 0-64 64v640a64 64 0 0 0 64 64h640a64 64 0 0 0 64-64V192a64 64 0 0 0-64-64z m0 192H192v-128h640v128z m0 64v448H192V384h640z"/></svg>';
+  }
+
+  function renderCards(data) {
+    if (!data || data.length === 0) { showEmpty(); return; }
+    let html = "";
+    data.forEach((item, idx) => {
+      html += '<div class="card">' +
+        '<div class="card-header">' +
+          '<div class="card-icon">' + cardIconSVG() + '</div>' +
+          '<div class="card-title"><span class="num">可续约活动' + toChineseNum(idx + 1) + '</span></div>' +
+        '</div>' +
+        '<div class="field"><div class="field-label">活动名称：</div><div class="field-value name">' + (item.activityName || "-") + '</div></div>' +
+        '<div class="field"><div class="field-label">生效时间：</div><div class="field-value">' + (item.startTime || "-") + '</div></div>' +
+        '<div class="field"><div class="field-label">失效时间：</div><div class="field-value">' + (item.endTime || "-") + '</div></div>' +
+        '<div class="field"><div class="field-label">活动描述：</div><div class="field-value desc">' + (item.activityDesc || "-") + '</div></div>' +
+      '</div>';
+    });
+    listEl.innerHTML = html;
+  }
+
+  async function loadData() {
+    showLoading();
+    const auth = getAuth();
+    const actId = (auth && auth.actId) || getQuery("actId") || "GSYD001";
+    const phone = (auth && auth.phone) || getQuery("phone") || "";
+
+    const params = new URLSearchParams();
+    params.append("actId", actId);
+    params.append("phone", phone);
+
+    try {
+      const resp = await fetchWithTimeout(API_URL + "?" + params.toString(), {
+        method: "GET",
+        headers: { "Accept": "application/json" }
+      }, 15000);
+      if (!resp.ok) throw new Error("HTTP " + resp.status);
+      const json = await parseJsonResponse(resp);
+      if (json && json.code === "200" && Array.isArray(json.data)) {
+        renderCards(json.data);
+        return;
+      }
+      throw new Error((json && json.msg) || "数据格式异常");
+    } catch (e) {
+      console.warn("接口获取失败：", e.message);
+      showEmpty("没有可续约的活动哦!");
+      showToast((e.message || "接口获取失败"));
+    }
+  }
+
+  // 切换账号：清除登录态并跳转到登录页
+  const switchBtn = document.getElementById("switchBtn");
+  if (switchBtn) {
+    switchBtn.addEventListener("click", () => {
+      localStorage.removeItem("gsyd_auth");
+      showToast("已退出，正在跳转登录页...");
+      setTimeout(() => { location.href = "login.html"; }, 600);
+    });
+  }
+
+  loadData();
+</script>
+</body>
+</html>

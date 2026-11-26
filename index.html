@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>gsyd-act 代理入口</title>
+    <style>
+        body { font-family: "Microsoft YaHei", sans-serif; padding: 40px; background:#f6f8fa; }
+        .box { max-width: 640px; margin: 0 auto; background:#fff; padding:32px;
+               border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,.06); }
+        h1 { margin-top:0; color:#24292f; }
+        .ok { color:#1a7f37; font-weight:bold; }
+        code { background:#f1f3f5; padding:2px 6px; border-radius:3px; }
+    </style>
+</head>
+<body>
+<div class="box">
+    <h1>gsyd-act 代理已启动 <span class="ok">●</span></h1>
+    <p>本应用透明转发所有请求到上游 <code>http://www.aifer666.cn:10001</code>。</p>
+    <p>例如访问 <code>/gsyd-act/foo?a=1</code> 将转发到 <code>http://www.aifer666.cn:10001/gsyd-act/foo?a=1</code>。</p>
+    <p style="color:#666;font-size:12px;">本页面仅作健康检查用，业务请求请带具体路径。</p>
+</div>
+</body>
+</html>
